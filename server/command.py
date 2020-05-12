@@ -15,5 +15,6 @@ def exec_command(comm_num):
 
 def exec_list_dir():
   result = subprocess.run("dir", stdout=subprocess.PIPE)
-  print(result.stdout)
-  return "list dir"
+  result_list = result.stdout.decode("utf-8").split(" ")
+  filtered_result_list = list(filter(None, result_list))
+  return filtered_result_list

@@ -31,5 +31,9 @@ if data_str == "Success":
         command = input("Command: ")
         if command == "send":
             s.send(b"2")
+        
+        data = s.recv(1024)
+        print(data.decode("utf-8"))
+
 elif data_str == "Failure":
     print("Connection refused")

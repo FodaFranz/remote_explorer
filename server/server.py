@@ -27,6 +27,14 @@ s.listen()
 connection_socket, client_address = s.accept()
 print(f"{client_address} connected")
 
+def send_to_client(msg):
+    line = ""
+    for x in msg:
+        line += x + " "
+    
+    line_bytes = bytes(line, "utf-8")
+    connection_socket.send(line_bytes)
+
 msg_len = -1
 
 while msg_len == -1:
@@ -42,6 +50,7 @@ if check_password(client_password) == True:
         data = connection_socket.recv(512)
         if data != 0:
             data_str = data.decode("utf-8")
-            print(command.exec_command(int(data_str)))
+            result = command.exec_command(int(data_str))
+            send_to_client(result)
 else:
     connection_socket.send(b"Failure")
