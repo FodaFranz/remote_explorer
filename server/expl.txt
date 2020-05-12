@@ -1,3 +1,0 @@
-Server is running on the pc. Client connects to server via socket and sends requests
-to the socket. The server will execute terminal commands on the pc and will then
-send back according results to the client via a tcp-stream.

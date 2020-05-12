@@ -20,7 +20,6 @@ s.connect((HOST, PORT))
 print(f"Connected to {HOST}")
 
 encrypted_pw, msg_len = encrypt_string("security")
-print(encrypted_pw)
 s.send(encrypted_pw)
 s.send(bytes(str(msg_len), "utf-8"))
 
@@ -29,6 +28,8 @@ data_str = data.decode("utf-8")
 if data_str == "Success":
     print("Connection established")
     while True:
-        print("IN IT")
+        command = input("Command: ")
+        if command == "send":
+            s.send(b"2")
 elif data_str == "Failure":
     print("Connection refused")
