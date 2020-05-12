@@ -1,0 +1,5 @@
+Client runs on the phone. Client connects to host (PC) and sends requests to it.
+The Client will receive lists of directories/files and show them to the user for further
+evaluation.
+
+(Client will probably only work on ubuntu)
