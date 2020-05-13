@@ -5,16 +5,20 @@ import command
 
 password = "security"
 
+
 def decrypt_string(encrypted_msg, msg_len):
-    obj = AES.new(b'\x9b\x9b\x0ct\x8e\x13KQ\xcb&s\xa7\xe7\xf7R4', AES.MODE_CBC, "This is an IV456")
+    obj = AES.new(b'\x9b\x9b\x0ct\x8e\x13KQ\xcb&s\xa7\xe7\xf7R4',
+                  AES.MODE_CBC, "This is an IV456")
     plain_pw = obj.decrypt(encrypted_msg)
     return plain_pw.decode("utf-8")[:msg_len]
+
 
 def check_password(pw):
     if pw == password:
         return True
     else:
         return False
+
 
 PORT = 1234
 HOST = socket.gethostname()
@@ -27,13 +31,15 @@ s.listen()
 connection_socket, client_address = s.accept()
 print(f"{client_address} connected")
 
+
 def send_to_client(msg):
     line = ""
     for x in msg:
         line += x + " "
-    
+
     line_bytes = bytes(line, "utf-8")
     connection_socket.send(line_bytes)
+
 
 msg_len = -1
 
