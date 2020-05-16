@@ -1,22 +1,22 @@
 import subprocess
 from enum import Enum
 
+
 class Commands(Enum):
   next_dir = 0
   prev_dir = 1
   list_dir = 2
 
+
 current_path = "~"
 
 def exec_command(comm_num):
-  try:
-    if comm_num == Commands.prev_dir:
-      return exec_prev_dir()
+  comm_id = Commands(comm_num)
+  if comm_id == Commands.prev_dir:
+    return exec_prev_dir()
 
-    if comm_num == Commands.list_dir:
-      return exec_list_dir()
-  except:
-    return "Error"
+  if comm_id == Commands.list_dir:
+    return exec_list_dir()
 
 
 def exec_prev_dir():
@@ -26,8 +26,8 @@ def exec_prev_dir():
   for x in list_path:
     current_path += x + "/"
   
-  print(current_path)
   return exec_list_dir()
+
 
 def exec_list_dir():
   result = subprocess.run("dir", stdout=subprocess.PIPE)

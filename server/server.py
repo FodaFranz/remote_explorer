@@ -1,4 +1,5 @@
 import socket
+import sys
 from Crypto.Cipher import AES
 
 import command
@@ -20,10 +21,12 @@ def check_password(pw):
         return False
 
 
-def send_to_client(msg, connection_socket):
+def send_list_to_client(msg, connection_socket, msg_id):
     line = ""
     for x in msg:
-        line += x + " "
+        line += str(x).strip() + " "
+
+    line += delimiter + msg_id
 
     line_bytes = bytes(line, "utf-8")
     connection_socket.send(line_bytes)
@@ -47,9 +50,8 @@ def open_connection(connection_socket):
                 try:
                     command_id = data_str.split(":")[0]
                     msg_id = data_str.split(":")[1]
-                    print(command_id)
                     result = command.exec_command(int(command_id))
-                    send_to_client(result, connection_socket)
+                    send_list_to_client(result, connection_socket, msg_id)
                 except:
                     connection_socket.send(b"Received invalid data")
                     print("Received invalid data")
@@ -75,8 +77,8 @@ def listen_for_connection():
     else:
         connection_socket.send(b"Failure")
 
-PORT = 1234
-HOST = socket.gethostname()
+PORT = int(sys.argv[2])
+HOST = sys.argv[1]
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

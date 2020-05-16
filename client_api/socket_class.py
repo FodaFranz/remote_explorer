@@ -6,6 +6,9 @@ from Crypto.Cipher import AES
 
 class Client:
     def connect(self, ip, port, password):
+        #List to store all completed messages (operations)
+        self.msg_list = []
+
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((ip, port))
 
@@ -37,11 +40,13 @@ class Client:
             data = self.s.recv(1024)
             data_str = data.decode("utf-8")
             print(data_str)
-            if(data_str.__contains__(str(msg.id))):
+            if(data_str.split("$")[-1] == str(msg.id)):
+                print("RESPONSE IS HERE")
                 msg.is_done = True
                 self.msg_list.append(msg)
                 
-        return data_str
+        #Return only the value part (without the message-id)
+        return data_str.split("$")[0]
 
     def encrypt_string(self, msg):
         obj = AES.new(b'\x9b\x9b\x0ct\x8e\x13KQ\xcb&s\xa7\xe7\xf7R4', AES.MODE_CBC, "This is an IV456")

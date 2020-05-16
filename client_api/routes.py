@@ -6,21 +6,28 @@ import socket_class
 
 app = Flask(__name__)
 
-socket = socket_class.Client()
+socket = None
+
+#TODO:
+# Give url unique id and store those unique ids with the sockets in redis 
+# or something similiar
 
 @app.route("/connect/")
 def connect():
     ip = request.args.get("ip")
     port = request.args.get("port")
+    pw = request.args.get("password")
 
-    socket.connect(ip, int(port), "security")
+    socket = socket_class.Client()
+
+    socket.connect(ip, int(port), pw)
     return "Connect page"
 
 @app.route("/send/")
 def send():
     msg = request.args.get("msg")
-    socket.send(msg)
-    return "Sent"
+    response = socket.send(msg)
+    return response
 
 @app.route("/close/")
 def close():
