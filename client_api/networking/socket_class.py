@@ -24,8 +24,10 @@ class Client:
         response_str = response.decode("utf-8")
         if response_str == "Success":
             print("Connection accepted")
+            return True
         else:
             print("Connection denied")
+            return False
 
     #Send and wait for response
     def send(self, content):
