@@ -14,6 +14,7 @@ class Socket:
 sockets = []
 
 def new_socket(client_id, s):
+
     socket = Socket(client_id, uuid.uuid4(), s)
     sockets.append(socket)
 

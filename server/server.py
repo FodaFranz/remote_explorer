@@ -3,6 +3,7 @@ import sys
 from Crypto.Cipher import AES
 
 import command
+import header
 
 password = "security"
 delimiter = '$'
@@ -20,15 +21,18 @@ def check_password(pw):
     else:
         return False
 
-
 def send_list_to_client(msg, connection_socket, msg_id):
     line = ""
     for x in msg:
-        line += str(x).strip() + " "
+        line += str(x).strip() + "\n"
 
-    line += delimiter + msg_id
-
+    #line += delimiter + msg_id
     line_bytes = bytes(line, "utf-8")
+    #Send header
+    header_msg = header.Header(len(line_bytes), msg_id)
+    connection_socket.send(bytes(header_msg.get_string(), "utf-8"))
+
+    #Send content
     connection_socket.send(line_bytes)
 
 def open_connection(connection_socket):
@@ -47,14 +51,14 @@ def open_connection(connection_socket):
             if data_str == "Establishing connection":
                 print("This server is already in use")
             else:
-                try:
-                    command_id = data_str.split(":")[0]
-                    msg_id = data_str.split(":")[1]
-                    result = command.exec_command(int(command_id))
-                    send_list_to_client(result, connection_socket, msg_id)
-                except:
-                    connection_socket.send(b"Received invalid data")
-                    print("Received invalid data")
+                #try:
+                command_id = data_str.split(":")[0]
+                msg_id = data_str.split(":")[1]
+                result = command.exec_command(int(command_id))
+                send_list_to_client(result, connection_socket, msg_id)
+                # except:
+                #     connection_socket.send(b"Received invalid data")
+                #     print("Received invalid data")
 
 def listen_for_connection():
     print(f"Listening on {HOST}:{PORT}")

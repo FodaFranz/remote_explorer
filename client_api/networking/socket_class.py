@@ -39,16 +39,17 @@ class Client:
     def listen_for_response(self, msg):
         data_str = None
         while msg.is_done == False:
-            data = self.s.recv(1024)
-            data_str = data.decode("utf-8")
-            print(data_str)
-            if(data_str.split("$")[-1] == str(msg.id)):
-                print("RESPONSE IS HERE")
-                msg.is_done = True
+            header = self.s.recv(64)
+            header_str = header.decode("utf-8")
+            msg_length = int(header_str.split(":")[0])
+            msg_id = header_str.split(":")[1]
+            if msg_id == str(msg.id):
+                msg.change_done()
+                data = self.s.recv(msg_length)
+                data_str = data.decode("utf-8")
                 self.msg_list.append(msg)
-                
-        #Return only the value part (without the message-id)
-        return data_str.split("$")[0]
+
+        return data_str
 
     def encrypt_string(self, msg):
         obj = AES.new(b'\x9b\x9b\x0ct\x8e\x13KQ\xcb&s\xa7\xe7\xf7R4', AES.MODE_CBC, "This is an IV456")
