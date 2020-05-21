@@ -30,8 +30,8 @@ class Client:
             return False
 
     #Send and wait for response
-    def send(self, content):
-        msg = message.Message(content)
+    def send(self, content, directory = None):
+        msg = message.Message(content, directory)
         self.s.send(bytes(msg.get_string()))
         response = self.listen_for_response(msg)
         return response

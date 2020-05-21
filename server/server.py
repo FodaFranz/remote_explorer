@@ -47,14 +47,20 @@ def open_connection(connection_socket):
 
         data_str = data.decode("utf-8")
         if data_str != '':
-            print(data_str)
             if data_str == "Establishing connection":
                 print("This server is already in use")
             else:
                 #try:
                 command_id = data_str.split(":")[0]
-                msg_id = data_str.split(":")[1]
-                result = command.exec_command(int(command_id))
+                result = None
+                if int(command_id) == 0:
+                    directory = data_str.split(":")[1]
+                    msg_id = data_str.split(":")[2]
+                    result = command.exec_command(int(command_id), directory)
+                else:
+                    msg_id = data_str.split(":")[1]
+                    result = command.exec_command(int(command_id))
+
                 send_list_to_client(result, connection_socket, msg_id)
                 # except:
                 #     connection_socket.send(b"Received invalid data")

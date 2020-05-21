@@ -34,8 +34,11 @@ def connect():
 def send():
     msg = request.args.get("msg")
     client_id = request.args.get("client_id")
-
-    response = socket_list.get_socket(client_id).send(msg)
+    if int(msg) == 0:
+        directory = request.args.get("directory")    
+        response = socket_list.get_socket(client_id).send(msg, directory)
+    else:
+        response = socket_list.get_socket(client_id).send(msg)
     return response
 
 @app.route("/close/")
