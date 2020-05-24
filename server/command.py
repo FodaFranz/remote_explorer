@@ -1,11 +1,13 @@
 import subprocess
 import getpass
+import os
 from enum import Enum
 
 class Commands(Enum):
   next_dir = 0
   prev_dir = 1
   list_dir = 2
+  get_file = 3
 
 username = getpass.getuser()
 current_path = r"/home/"+username
@@ -20,6 +22,16 @@ def exec_command(comm_num, directory=None):
 
   if comm_id == Commands.next_dir:
     return exec_next_dir(directory)
+
+  if comm_id == Commands.get_file:
+      return get_file_as_bytes(directory)
+
+def get_file_as_bytes(filename):
+  global current_path
+  file_size = os.path.getsize(current_path + "/" + filename)
+  with open(current_path + "/" + filename, "rb") as f: 
+    file_bytes = f.read()
+    return file_bytes
 
 def exec_next_dir(directory_name):
   global current_path

@@ -14,29 +14,28 @@ def decrypt_string(encrypted_msg, msg_len):
     plain_pw = obj.decrypt(encrypted_msg)
     return plain_pw.decode("utf-8")[:msg_len]
 
-
 def check_password(pw):
     if pw == password:
         return True
     else:
         return False
 
-def send_list_to_client(msg, connection_socket, msg_id):
+def send(content, connection_socket, msg_id):
+    header_msg = header.Header(len(content), msg_id)
+    connection_socket.send(bytes(header_msg.get_string(), "utf-8"))
+
+    connection_socket.send(content)
+
+def send_as_list(msg, connection_socket, msg_id):
     line = ""
     for x in msg:
         line += str(x).strip() + "\n"
 
-    #line += delimiter + msg_id
     line_bytes = bytes(line, "utf-8")
-    #Send header
-    header_msg = header.Header(len(line_bytes), msg_id)
-    connection_socket.send(bytes(header_msg.get_string(), "utf-8"))
-
-    #Send content
-    connection_socket.send(line_bytes)
+    send(line_bytes, connection_socket, msg_id)
 
 def open_connection(connection_socket):
-    connection_socket.send(b"Success")
+    connection_socket.send(b"0")
     while True:
         data = connection_socket.recv(512)
         
@@ -46,53 +45,53 @@ def open_connection(connection_socket):
             listen_for_connection()
 
         data_str = data.decode("utf-8")
+        #<command-id>:<directory/filename>:<msg-id>
         if data_str != '':
-            if data_str == "Establishing connection":
-                print("This server is already in use")
+            command_id = int(data_str.split(":")[0])
+            result = None
+            if command_id == 0:
+                #Go into directory
+                directory = data_str.split(":")[1]
+                msg_id = data_str.split(":")[2]
+                result = command.exec_command(command_id, directory)
+                send_as_list(result, connection_socket, msg_id)
+            elif command_id == 3:
+                #Send file
+                filename = data_str.split(":")[1]
+                msg_id = data_str.split(":")[2]
+                result = command.exec_command(command_id, filename)
+                
+                send(result, connection_socket, msg_id)
             else:
-                #try:
-                command_id = data_str.split(":")[0]
-                result = None
-                if int(command_id) == 0:
-                    directory = data_str.split(":")[1]
-                    msg_id = data_str.split(":")[2]
-                    result = command.exec_command(int(command_id), directory)
-                else:
-                    msg_id = data_str.split(":")[1]
-                    result = command.exec_command(int(command_id))
+                msg_id = data_str.split(":")[1]
+                result = command.exec_command(int(command_id))
+                send_as_list(result, connection_socket, msg_id)
 
-                send_list_to_client(result, connection_socket, msg_id)
-                # except:
-                #     connection_socket.send(b"Received invalid data")
-                #     print("Received invalid data")
 
 def listen_for_connection():
     print(f"Listening on {HOST}:{PORT}")
     connection_socket, client_address = s.accept()
     print(f"{client_address} connected")
 
-    f_data = connection_socket.recv(23)
-    f_data_str = f_data.decode("utf-8")
-    confirm_message = b""
-    msg_len = b""
-
-    if f_data_str == "Establishing connection":
-        confirm_message = connection_socket.recv(16)
-        msg_len = connection_socket.recv(1024)
-        msg_len = int(msg_len.decode("utf-8"))
+    confirm_message = connection_socket.recv(16)
+    msg_len = connection_socket.recv(2)
+    msg_len = int(msg_len.decode("utf-8"))
 
     client_password = decrypt_string(confirm_message, msg_len)
     if check_password(client_password) == True:
         open_connection(connection_socket)
     else:
-        connection_socket.send(b"Failure")
+        connection_socket.send(b"-1")
 
+#Get host and port parameter from command line
 PORT = int(sys.argv[2])
 HOST = sys.argv[1]
 
+#Create socket and start listenenig
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.bind((HOST, PORT))
+#Accept only 1 concurrent connection
 s.listen(1)
 
 listen_for_connection()

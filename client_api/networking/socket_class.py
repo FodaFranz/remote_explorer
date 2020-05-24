@@ -1,7 +1,7 @@
 import socket
 import sys
 import uuid
-import message
+from . import message
 from Crypto.Cipher import AES
 
 class Client:
@@ -10,29 +10,33 @@ class Client:
         self.msg_list = []
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.connect((ip, port))
+        self.s.connect((str(ip), int(port)))
 
-        #send credentials
+        #msg_len is the length of the real message without appended 'x's
         encrypted_pw, msg_len = self.encrypt_string(password)
-        self.s.send(b"Establishing connection")
         self.s.send(encrypted_pw)
-        msg_len_str = str(msg_len)
-        self.s.send(bytes(msg_len_str))
+        msg_len = str(msg_len)
+        if len(msg_len) < 2:
+            msg_len = "0" + msg_len
+        
+        print(msg_len)
+            
+        self.s.send(bytes(str(msg_len), "utf-8"))
 
         #wait for answer
-        response = self.s.recv(1024)
-        response_str = response.decode("utf-8")
-        if response_str == "Success":
+        response_bytes = self.s.recv(1024)
+        response = int(response_bytes.decode("utf-8"))
+        if response == 0:
             print("Connection accepted")
             return True
-        else:
+        elif response == -1:
             print("Connection denied")
             return False
 
     #Send and wait for response
     def send(self, content, directory = None):
         msg = message.Message(content, directory)
-        self.s.send(bytes(msg.get_string()))
+        self.s.send(bytes(msg.get_string(), "utf-8"))
         response = self.listen_for_response(msg)
         return response
 
@@ -43,11 +47,15 @@ class Client:
             header_str = header.decode("utf-8")
             msg_length = int(header_str.split(":")[0])
             msg_id = header_str.split(":")[1]
-            if msg_id == str(msg.id):
+            #Receive msg-content if msg-ids allign
+            if msg_id == str(msg.id):                    
                 msg.change_done()
                 data = self.s.recv(msg_length)
-                data_str = data.decode("utf-8")
                 self.msg_list.append(msg)
+                if msg.content == "3":
+                    return data
+
+                data_str = data.decode("utf-8")
 
         return data_str
 
