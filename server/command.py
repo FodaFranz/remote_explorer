@@ -1,30 +1,25 @@
 import subprocess
 import getpass
 import os
-from enum import Enum
-
-class Commands(Enum):
-  next_dir = 0
-  prev_dir = 1
-  list_dir = 2
-  get_file = 3
+import sys
+import command_types as ct
+import message
 
 username = getpass.getuser()
 current_path = r"/home/"+username
 
-def exec_command(comm_num, directory=None):
-  comm_id = Commands(comm_num)
-  if comm_id == Commands.prev_dir:
+def exec_command(msg):
+  if msg.get_command_id() == ct.Command_Types.prev_dir:
     return exec_prev_dir()
 
-  if comm_id == Commands.list_dir:
+  if msg.get_command_id() == ct.Command_Types.list_dir:
     return exec_list_dir()
 
-  if comm_id == Commands.next_dir:
-    return exec_next_dir(directory)
+  if msg.get_command_id() == ct.Command_Types.next_dir:
+    return exec_next_dir(msg.parameter)
 
-  if comm_id == Commands.get_file:
-      return get_file_as_bytes(directory)
+  if msg.get_command_id() == ct.Command_Types.get_file:
+      return get_file_as_bytes(msg.parameter)
 
 def get_file_as_bytes(filename):
   global current_path

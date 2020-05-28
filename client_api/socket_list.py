@@ -10,11 +10,9 @@ class Socket:
     def get_string(self):
         return str(self.client_id) + ":" + str(self.socket_id)
 
-
 sockets = []
 
 def new_socket(client_id, s):
-
     socket = Socket(client_id, uuid.uuid4(), s)
     sockets.append(socket)
 

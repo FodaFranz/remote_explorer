@@ -1,7 +1,8 @@
 import socket
 import sys
 import uuid
-from . import message
+import message
+import command_types as ct
 from Crypto.Cipher import AES
 
 class Client:
@@ -16,26 +17,23 @@ class Client:
         encrypted_pw, msg_len = self.encrypt_string(password)
         self.s.send(encrypted_pw)
         msg_len = str(msg_len)
+        #msg_len gets recv'd at an constant size so we add 0s to fill that space
         if len(msg_len) < 2:
             msg_len = "0" + msg_len
-        
-        print(msg_len)
-            
-        self.s.send(bytes(str(msg_len), "utf-8"))
+        self.s.send(bytes(msg_len, "utf-8"))
 
-        #wait for answer
-        response_bytes = self.s.recv(1024)
-        response = int(response_bytes.decode("utf-8"))
-        if response == 0:
-            print("Connection accepted")
-            return True
-        elif response == -1:
-            print("Connection denied")
-            return False
+        #wait for answer 
+        #0 -> connection successfull
+        #-1 -> wrong password
+        response = self.s.recv(2)
+        return int(response.decode("utf-8"))
 
     #Send and wait for response
-    def send(self, content, directory = None):
-        msg = message.Message(content, directory)
+    #parameter is the directory to go into or the file to request
+    def send(self, content, parameter = None):
+        #Msg-format
+        #<command-id>:<message:id>:[<parameter>]
+        msg = message.Message(content, parameter)
         self.s.send(bytes(msg.get_string(), "utf-8"))
         response = self.listen_for_response(msg)
         return response
@@ -52,7 +50,7 @@ class Client:
                 msg.change_done()
                 data = self.s.recv(msg_length)
                 self.msg_list.append(msg)
-                if msg.content == "3":
+                if msg.get_command_id == ct.Command_Types.get_file:
                     return data
 
                 data_str = data.decode("utf-8")

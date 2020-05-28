@@ -1,10 +1,10 @@
-import flask
 from flask import Flask
 from flask import request
 from markupsafe import escape
 
 from networking import socket_class
 import socket_list
+import command_types as ct
 
 app = Flask(__name__)
 
@@ -17,28 +17,31 @@ def connect():
 
     socket = socket_class.Client()
 
-    isConnectSuccessfull = socket.connect(ip, int(port), pw)
+    response = socket.connect(ip, int(port), pw)
 
-    if isConnectSuccessfull:
+    if response == 0:
         socket_list.new_socket(client_id, socket)
-        return "Connection successfull"
-    else:
-        return "Connection failed"
+        return "Connection established"
+    elif response == -1:
+        return "Wrong password"
+    
+    return "Something went wrong connecting to the server"
 
 @app.route("/send/")
 def send():
-    msg = request.args.get("msg")
+    msg = int(request.args.get("msg"))
+    comm_id = ct.Command_Types(msg)
+
     client_id = request.args.get("client_id")
-    if int(msg) == 0:
+    
+    if comm_id == ct.Command_Types.next_dir:
         directory = request.args.get("directory")
         response = socket_list.get_socket(client_id).send(msg, directory)
-    elif int(msg) == 3:
-        #Request file
+    elif comm_id == ct.Command_Types.get_file:
         filename = request.args.get("filename")
         response = socket_list.get_socket(client_id).send(msg, filename)
     else:
         response = socket_list.get_socket(client_id).send(msg)
-
 
     return response
 
