@@ -3,6 +3,7 @@ import sys
 import uuid
 import message
 import command_types as ct
+import explorer_object as eo
 from Crypto.Cipher import AES
 
 class Client:
@@ -36,10 +37,10 @@ class Client:
         msg = message.Message(content, parameter)
         self.s.send(bytes(msg.get_string(), "utf-8"))
         response = self.listen_for_response(msg)
+
         return response
 
     def listen_for_response(self, msg):
-        data_str = None
         while msg.is_done == False:
             header = self.s.recv(64)
             header_str = header.decode("utf-8")
@@ -54,8 +55,14 @@ class Client:
                     return data
 
                 data_str = data.decode("utf-8")
+                #Parse data_str in list of explorer_objects
+                explorer_objects = []
+                for x in data_str.split("\n")[1:]:
+                    explorer_objects.append(eo.Explorer_Object(x))
 
-        return data_str
+                return explorer_objects
+
+        return "Something went wrong"
 
     def encrypt_string(self, msg):
         obj = AES.new(b'\x9b\x9b\x0ct\x8e\x13KQ\xcb&s\xa7\xe7\xf7R4', AES.MODE_CBC, "This is an IV456")

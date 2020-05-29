@@ -1,8 +1,11 @@
 from flask import Flask
 from flask import request
+#from flask import jsonify
+import json
 from markupsafe import escape
 
 from networking import socket_class
+from explorer_object import Explorer_Object_Encoder
 import socket_list
 import command_types as ct
 
@@ -43,7 +46,7 @@ def send():
     else:
         response = socket_list.get_socket(client_id).send(msg)
 
-    return response
+    return Explorer_Object_Encoder().encode(response)
 
 @app.route("/close/")
 def close():

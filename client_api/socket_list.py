@@ -14,9 +14,13 @@ sockets = []
 
 def new_socket(client_id, s):
     socket = Socket(client_id, uuid.uuid4(), s)
-    sockets.append(socket)
+    #Check if client already has an open socket
+    if get_socket(client_id) != None:
+        return -1
 
+    sockets.append(socket)
     dal.add_socket(client_id, str(socket.socket_id))
+    return 0
 
 def get_socket(client_id):
     for x in sockets:
